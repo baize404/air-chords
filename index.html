@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="zh-Hant-TW">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>AirChords 空中和弦 · 比手勢彈和弦</title>
+<meta name="description" content="對著鏡頭比手勢就能彈和弦的網頁樂器。一手彈和弦，一手掃弦、彈旋律；也能用觸控或鍵盤。畫面不上傳、免註冊、免費錄影和匯出 MIDI。">
+<meta name="theme-color" content="#07080f">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22%3E%3Ctext y=%22.9em%22 font-size=%2290%22%3E%F0%9F%A4%9A%3C/text%3E%3C/svg%3E">
+<meta property="og:title" content="AirChords 空中和弦">
+<meta property="og:description" content="比手勢彈和弦的網頁樂器：免安裝、免註冊、畫面不上傳。">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<canvas id="stage"></canvas>
+<video id="cam" playsinline muted autoplay></video>
+
+<header id="top">
+  <div class="brand">AirChords <span>空中和弦</span></div>
+  <label class="field"><span class="lbl">調</span>
+    <select id="key"></select>
+    <select id="mode"><option value="major">大調</option><option value="minor">小調</option></select>
+  </label>
+  <label class="field"><span class="lbl">和弦組</span> <select id="prog"></select></label>
+  <label class="field"><span class="lbl">音色</span> <select id="sound"></select></label>
+  <label class="field"><span class="lbl">另一隻手</span> <select id="rhand">
+    <option value="express">掃弦＋音色</option>
+    <option value="melody">彈旋律</option>
+    <option value="theremin">滑音（特雷門）</option>
+  </select></label>
+  <div class="spacer"></div>
+  <button id="helpBtn" class="icon" title="手勢說明">?</button>
+  <button id="setBtn" class="icon" title="設定">⚙</button>
+</header>
+
+<section id="settings" class="panel" hidden>
+  <h3>設定</h3>
+  <label>速度 <input id="bpm" type="range" min="60" max="160" value="96"> <b id="bpmVal">96</b> BPM</label>
+  <label>換和弦對齊 <select id="quant">
+    <option value="off">不對齊（照手的時間）</option><option value="beat">對齊拍子</option><option value="bar">對齊小節</option>
+  </select></label>
+  <label>旋律音階 <select id="scale"><option value="penta">五聲音階（怎麼彈都好聽）</option><option value="scale">完整音階</option></select></label>
+  <label>殘響 <input id="rev" type="range" min="0" max="100" value="35"></label>
+  <label>回音 <input id="dly" type="range" min="0" max="100" value="12"></label>
+  <label class="check"><input id="swap" type="checkbox"> 和弦改用右邊的手（左撇子）</label>
+  <label class="check"><input id="showCam" type="checkbox" checked> 顯示鏡頭畫面</label>
+  <p class="small">鏡頭畫面只在你的裝置上分析，不會上傳到任何地方。</p>
+</section>
+
+<section id="groove">
+  <button class="tog" data-g="drums">鼓</button>
+  <button class="tog" data-g="bass">貝斯</button>
+  <button class="tog" data-g="arp">琶音</button>
+  <select id="style"></select>
+</section>
+
+<nav id="pads"></nav>
+
+<footer id="bottom">
+  <div class="group">
+    <button id="loopBtn" class="pill">⏺ 循環</button>
+    <select id="loopBars" title="循環長度"><option value="2">2 小節</option><option value="4" selected>4 小節</option><option value="8">8 小節</option></select>
+    <button id="loopClear" class="pill ghost" hidden>清除循環</button>
+  </div>
+  <div class="group">
+    <button id="recV" class="pill">🎬 錄影 9:16</button>
+    <button id="recH" class="pill ghost">🖥 錄影 16:9</button>
+    <button id="recA" class="pill ghost">🎙 錄音</button>
+    <button id="midiBtn" class="pill ghost">🎹 MIDI</button>
+  </div>
+</footer>
+
+<div id="toast" hidden></div>
+
+<section id="intro" class="overlay">
+  <div class="card">
+    <h1>AirChords <span>空中和弦</span></h1>
+    <p class="lead">對著鏡頭比手勢就能彈和弦。一隻手決定和弦，另一隻手掃弦、調音色或彈旋律。</p>
+    <ul class="feats">
+      <li><b>免安裝、免註冊、不收費</b>，打開就能彈</li>
+      <li><b>畫面不上傳</b>：手部追蹤在你的裝置上跑</li>
+      <li><b>不想開鏡頭也行</b>：觸控和鍵盤都能彈</li>
+      <li><b>錄多久都可以</b>：直式影片、錄音、MIDI 免費下載</li>
+      <li>循環錄音、鼓、貝斯、琶音、六種流行和弦進行</li>
+    </ul>
+    <div class="cta">
+      <button id="startCam" class="big">📷 開鏡頭，用手勢彈</button>
+      <button id="startTouch" class="big ghost">👆 不開鏡頭，用觸控／鍵盤彈</button>
+    </div>
+    <p class="small">按下按鈕才會開始發出聲音（瀏覽器規定）。建議用電腦版 Chrome 或 Edge，光線充足、手和臉都在畫面裡。</p>
+  </div>
+</section>
+
+<section id="help" class="overlay" hidden>
+  <div class="card wide">
+    <h2>怎麼彈</h2>
+    <div class="cols">
+      <div>
+        <h4>和弦手（畫面左半邊）</h4>
+        <table id="helpTable"></table>
+        <p class="small">手往畫面中間傾斜 → 加七和弦；往外傾斜 → 大小調互換（借用和弦）。</p>
+      </div>
+      <div>
+        <h4>另一隻手（畫面右半邊）</h4>
+        <ul>
+          <li><b>掃弦＋音色：</b>手往下一揮＝掃弦；手越高聲音越亮；左右位置換高、中、低音域；握拳＝止音</li>
+          <li><b>彈旋律：</b>食指的高度決定音高，拇指和食指捏起來才發聲，放開就停</li>
+          <li><b>滑音：</b>像特雷門琴，音高連續變化，一樣捏起來發聲</li>
+        </ul>
+        <h4>鍵盤</h4>
+        <ul>
+          <li><kbd>1</kbd>–<kbd>7</kbd> 按住彈和弦，<kbd>Shift</kbd> 加七和弦，<kbd>M</kbd> 大小調互換</li>
+          <li><kbd>空白鍵</kbd> 掃弦，<kbd>↑</kbd><kbd>↓</kbd> 音色亮暗，<kbd>Z</kbd><kbd>X</kbd> 音域</li>
+          <li><kbd>Q</kbd>–<kbd>P</kbd> 彈旋律，<kbd>L</kbd> 循環錄音</li>
+        </ul>
+        <h4>觸控</h4>
+        <p>按住下方的和弦按鈕彈和弦；在畫面右半邊上下拖曳＝調音色／彈旋律，輕點＝掃弦。</p>
+      </div>
+    </div>
+    <div class="cta"><button id="helpClose" class="big">知道了</button></div>
+  </div>
+</section>
+
+<section id="result" class="overlay" hidden>
+  <div class="card">
+    <h2 id="resTitle">錄好了</h2>
+    <div id="resMedia"></div>
+    <p id="resInfo" class="small"></p>
+    <div class="cta">
+      <a id="resDl" class="big" download>下載</a>
+      <button id="resClose" class="big ghost">關閉</button>
+    </div>
+  </div>
+</section>
+
+<script type="module" src="js/main.js"></script>
+</body>
+</html>

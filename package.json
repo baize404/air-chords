@@ -1,0 +1,9 @@
+{
+  "name": "air-chords",
+  "private": true,
+  "type": "module",
+  "description": "Play chords in the air with your hands: a browser instrument using webcam hand tracking.",
+  "scripts": {
+    "test": "node tests/test.js"
+  }
+}
